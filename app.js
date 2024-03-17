@@ -1,5 +1,7 @@
 const express = require("express");
 const { OAuth2Client, UserRefreshClient } = require("google-auth-library");
+const OpenAI = require("openai");
+
 const cors = require("cors");
 const axios = require("axios");
 const app = express();
@@ -8,7 +10,7 @@ const env = require("dotenv").config();
 
 app.use(
   cors({
-    origin: "https://fitx.trulyprashant.in", // Allow requests from this origin
+    origin: "http://localhost:3000", // Allow requests from this origin
     optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );
@@ -54,6 +56,113 @@ app.post("/auth/google/refresh-token", async (req, res) => {
     }
   } catch (err) {
     res.send(JSON.stringify(err)).status(500);
+  }
+});
+
+// app.post("/recipe/create", async (req, res) => {
+//   try {
+//     const openai = new OpenAI({
+//       apiKey: process.env.OPENAI_API_KEY,
+//     });
+
+//     const response = await openai.completions.create({
+//       model: "gpt-3.5-turbo-instruct",
+//       prompt: ` give me 3 recipes that comply with the following dietary requirements
+// {
+//   allergies
+// :
+// "Peanut allergy"
+// dietaryPreferences
+// :
+// "vegetarian"
+// name
+// :
+// "Soaked oats"
+// nutritionalPreference
+// :
+// "High in protein, low in sugar"}
+
+// in response format like this
+
+// recipes:
+// [{
+
+//     name: "Name of the recipe",
+//     ingredients: [ingredients],
+//     description: 100 words,
+//     instructions: [steps], //5 steps at least
+//     macros_per_100g: [carbs, protein, fats],
+//     calories: int,
+//     dietary_restrictions,
+//     allergy_warning,
+
+// }].
+
+// response_type: JSON`,
+//       temperature: 1,
+//       max_tokens: 834,
+//       top_p: 1,
+//       frequency_penalty: 0,
+//       presence_penalty: 0,
+//     });
+
+//     console.log(response.choices[0]);
+
+//     res.json(response.choices[0]);
+//   } catch (err) {}
+// });
+
+app.post("/recipe/create", async (req, res) => {
+  const { data } = req.body;
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
+
+  const thread = await openai.beta.threads.create();
+
+  const message = await openai.beta.threads.messages.create(thread.id, {
+    role: "user",
+    content:
+      `give me 3 recipes that comply with the following dietary requirements ` +
+      JSON.stringify(data) +
+      `
+in response format like this
+
+recipes:
+[{
+
+    name: "Name of the recipe",
+    ingredients: [ingredients],
+    description: 100 words,
+    instructions: [steps], //5 steps at least
+    macros_per_100g: [carbs, protein, fats],
+    calories: int,
+    dietary_restrictions,
+    allergy_warning,
+    
+              }].`,
+  });
+
+  let run = await openai.beta.threads.runs.create(thread.id, {
+    assistant_id: "asst_wjM1F7JHA9nYJrgog39WqoXJ",
+  });
+
+  while (["queued", "in_progress", "cancelling"].includes(run.status)) {
+    await new Promise((resolve) => setTimeout(resolve, 1000)); // Wait for 1 second
+    run = await openai.beta.threads.runs.retrieve(run.thread_id, run.id);
+  }
+
+  if (run.status === "completed") {
+    const messages = await openai.beta.threads.messages.list(run.thread_id);
+    for (const message of messages.data.reverse()) {
+      console.log(`${message.role} > ${message.content[0].text.value}`);
+    }
+
+    let data = messages.data.pop().content.pop().text.value;
+
+    res.send(data);
+  } else {
+    console.log(run.status);
   }
 });
 
