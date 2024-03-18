@@ -113,7 +113,9 @@ app.post("/auth/google/refresh-token", async (req, res) => {
 // });
 
 app.post("/recipe/create", async (req, res) => {
-  const { data } = req.body;
+  console.log(req.body);
+  const { name, nutritionalPreference, dietaryPreferences, allergies } =
+    req.body;
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   });
@@ -122,25 +124,37 @@ app.post("/recipe/create", async (req, res) => {
 
   const message = await openai.beta.threads.messages.create(thread.id, {
     role: "user",
-    content:
-      `give me 3 recipes that comply with the following dietary requirements ` +
-      JSON.stringify(data) +
-      `
+    content: `give me a recipe based on the following params:-
+
+[
+
+recipe_name: '${name}',
+
+dietary_restriction: '${dietaryPreferences}',
+
+nutritional_preferences: '${nutritionalPreference}',
+
+allergies: '${allergies}',
+
+
+]
+
+
 in response format like this
 
-recipes:
-[{
 
-    name: "Name of the recipe",
-    ingredients: [ingredients],
-    description: 100 words,
-    instructions: [steps], //5 steps at least
-    macros_per_100g: [carbs, protein, fats],
-    calories: int,
-    dietary_restrictions,
-    allergy_warning,
-    
-              }].`,
+recipes: [{
+
+name: "Name of the recipe",
+ingredients: [ingredients],
+description: 100 words,
+instructions: [steps], //5 steps at least
+macros_per_100g: [carbs: number, protein: number, fats: number, fibre: number],
+calories: numbers, //in Cal
+dietary_restrictions,
+allergy_warning,
+
+          }]. `,
   });
 
   let run = await openai.beta.threads.runs.create(thread.id, {
