@@ -8,9 +8,11 @@ const app = express();
 
 const env = require("dotenv").config();
 
+const origins = process.env.FRONTEND_URL.split(",");
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL, // Allow requests from this origin
+    origin: origins, // Allow requests from this origin
     optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );
