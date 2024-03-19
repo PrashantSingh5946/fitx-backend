@@ -10,7 +10,7 @@ const env = require("dotenv").config();
 
 app.use(
   cors({
-    origin: "http://localhost:3000", // Allow requests from this origin
+    origin: process.env.FRONTEND_URL, // Allow requests from this origin
     optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
   })
 );
