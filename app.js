@@ -1,12 +1,18 @@
+const env = require("dotenv").config();
 const express = require("express");
 const { OAuth2Client, UserRefreshClient } = require("google-auth-library");
 const OpenAI = require("openai");
+const connection = require("./lib/database/mogoose");
+
+const RecipeModel = require("./models/Recipe.model");
 
 const cors = require("cors");
 const axios = require("axios");
 const app = express();
 
-const env = require("dotenv").config();
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const origins = process.env.FRONTEND_URL.split(",");
 
@@ -115,6 +121,7 @@ app.post("/auth/google/refresh-token", async (req, res) => {
 // });
 
 app.post("/recipe/create", async (req, res) => {
+  const { user_email } = req.headers;
   console.log(req.body);
   const { name, nutritionalPreference, dietaryPreferences, allergies } =
     req.body;
@@ -144,19 +151,16 @@ allergies: '${allergies}',
 
 in response format like this
 
-
-recipes: [{
-
-name: "Name of the recipe",
-ingredients: [ingredients],
-description: 100 words,
-instructions: [steps], //5 steps at least
-macros_per_100g: [carbs: number, protein: number, fats: number, fibre: number],
-calories: numbers, //in Cal
-dietary_restrictions,
-allergy_warning,
-
-          }]. `,
+  {
+    name: "<Name of the recipe>",
+    ingredients: <[ingredients]>,
+    description: <100 words>,
+    instructions: <[steps]>, //5 steps at least
+    macros_per_100g: <["<carbs>", "<protein>", "<fats>", "<fiber>"]>,
+    calories: <int>,
+    dietary_restrictions: <dietary restrictions>,
+    allergy_warning: <allergy warning>,
+    }.`,
   });
 
   let run = await openai.beta.threads.runs.create(thread.id, {
@@ -176,10 +180,78 @@ allergy_warning,
 
     let data = messages.data.pop().content.pop().text.value;
 
-    res.send(data);
+    const imageResponse = await openai.images.generate({
+      model: "dall-e-3",
+      quality: "standard",
+      prompt: JSON.parse(data).name,
+      n: 1,
+      size: "1024x1024",
+    });
+
+    const recipe = new RecipeModel({
+      ...JSON.parse(data),
+      user_email,
+      thumbnail_url: imageResponse.data[0].url,
+    });
+
+    await recipe.save();
+
+    console.log(recipe);
+
+    res.send(recipe._id);
   } else {
     console.log(run.status);
   }
 });
 
-app.listen(process.env.PORT || 3001, () => console.log(`server is running`));
+app.get("/recipe/all", async (req, res) => {
+  try {
+    const { user_email } = req.headers;
+    const recipes = await RecipeModel.find({ user_email });
+    res.status(200).json(recipes);
+  } catch (err) {
+    res.send({ message: "Internal server error" }).status(500);
+  }
+});
+
+app.get("/recipe/:id", async (req, res) => {
+  try {
+    const recipeId = req.params.id;
+    const { user_email } = req.headers;
+
+    const recipe = await RecipeModel.findOne({ _id: recipeId, user_email });
+    console.log("🚀 ~ file: app.js:192 ~ app.get ~ recipe:", recipe);
+    res.status(200).json(recipe);
+  } catch (error) {
+    res.send({ message: "Internal server error" }).status(500);
+  }
+});
+
+app.post("/image/generate", async (req, res) => {
+  try {
+    const { prompt, amount = 1, resolution = "1024x1024" } = req.body;
+
+    const response = await openai.images.generate({
+      model: "dall-e-3",
+      quality: "standard",
+      prompt,
+      n: parseInt(amount, 10),
+      size: resolution,
+    });
+
+    console.log(response);
+    res.status(200).json(response.data);
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+});
+
+app.listen(3001, async () => {
+  try {
+    await connection;
+    console.log("Database connection established");
+  } catch (error) {
+    console.log("Database connection error");
+  }
+  console.log("Server listening on port " + 3001);
+});
