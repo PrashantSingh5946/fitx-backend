@@ -168,7 +168,7 @@ app.post("/image/generate", async (req, res) => {
   }
 });
 
-app.listen(3001, async () => {
+app.listen(process.env.PORT||6000, async () => {
   try {
     await connection;
     console.log("Database connection established");
