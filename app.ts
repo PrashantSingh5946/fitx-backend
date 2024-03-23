@@ -126,7 +126,7 @@ in response format like this
 app.get("/recipe/all", async (req, res) => {
   try {
     const { user_email } = req.headers;
-    const recipes = await RecipeModel.find();
+    const recipes = await RecipeModel.find().limit(5);
     res.status(200).json(recipes);
   } catch (err) {
     res.send({ message: "Internal server error" }).status(500);

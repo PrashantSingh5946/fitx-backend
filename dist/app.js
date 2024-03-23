@@ -112,7 +112,7 @@ in response format like this
 app.get("/recipe/all", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { user_email } = req.headers;
-        const recipes = yield RecipeModel.find();
+        const recipes = yield RecipeModel.find().limit(5);
         res.status(200).json(recipes);
     }
     catch (err) {
