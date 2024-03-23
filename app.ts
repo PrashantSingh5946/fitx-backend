@@ -126,7 +126,7 @@ in response format like this
 app.get("/recipe/all", async (req, res) => {
   try {
     const { user_email } = req.headers;
-    const recipes = await RecipeModel.find({ user_email });
+    const recipes = await RecipeModel.find();
     res.status(200).json(recipes);
   } catch (err) {
     res.send({ message: "Internal server error" }).status(500);
@@ -140,7 +140,7 @@ app.get("/recipe/:id", async (req, res) => {
 
     const recipe = await RecipeModel.findOne({
       _id: new ObjectId(recipeId),
-      user_email,
+      //user_email,
     });
     console.log("🚀 ~ file: app.js:192 ~ app.get ~ recipe:", recipe);
     res.status(200).json(recipe);

@@ -112,7 +112,7 @@ in response format like this
 app.get("/recipe/all", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { user_email } = req.headers;
-        const recipes = yield RecipeModel.find({ user_email });
+        const recipes = yield RecipeModel.find();
         res.status(200).json(recipes);
     }
     catch (err) {
@@ -125,7 +125,7 @@ app.get("/recipe/:id", (req, res) => __awaiter(void 0, void 0, void 0, function*
         const { user_email } = req.headers;
         const recipe = yield RecipeModel.findOne({
             _id: new mongodb_1.ObjectId(recipeId),
-            user_email,
+            //user_email,
         });
         console.log("🚀 ~ file: app.js:192 ~ app.get ~ recipe:", recipe);
         res.status(200).json(recipe);
