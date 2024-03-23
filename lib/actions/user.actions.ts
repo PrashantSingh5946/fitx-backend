@@ -1,9 +1,7 @@
-import { revalidatePath } from "next/cache";
-
 import UserModel from "../database/models/user.model";
-import { connectToDatabase } from "../database/mongoose";
+const connectToDatabase = require("../database/mongoose");
 import { handleError } from "../utils";
-import { User } from "@/lib/database/models/user.model";
+import { User } from "../../lib/database/models/user.model";
 
 // CREATE
 export async function createUser(user: CreateUserParams) {
@@ -75,7 +73,6 @@ export async function deleteUser(userId: string) {
 
     // Delete user
     const deletedUser = await UserModel.findByIdAndDelete(userId);
-    revalidatePath("/");
 
     return deletedUser ? JSON.parse(JSON.stringify(deletedUser)) : null;
   } catch (error) {

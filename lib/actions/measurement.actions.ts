@@ -1,5 +1,5 @@
 import MeasurementModel from "../database/models/measurement.model";
-import { connectToDatabase } from "../database/mongoose";
+const connectToDatabase = require("../database/mongoose");
 import { handleError } from "../utils";
 
 // CREATE
@@ -61,9 +61,7 @@ export const updateMeasurementByUserIdAndMeasurementId = async (
 };
 
 // DELETE
-export const deleteMeasurementById = async (
-  measurementId: string
-) => {
+export const deleteMeasurementById = async (measurementId: string) => {
   try {
     await connectToDatabase();
 

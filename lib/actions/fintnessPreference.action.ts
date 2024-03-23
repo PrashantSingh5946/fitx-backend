@@ -1,5 +1,5 @@
 import FitnessPreferenceModel from "../database/models/fitnessPreference.model";
-import { connectToDatabase } from "../database/mongoose";
+const connectToDatabase = require("../database/mongoose");
 import { handleError } from "../utils";
 
 // CREATE
@@ -63,13 +63,13 @@ export const updatePreferenceByUserIdAndPreferencieId = async (
 };
 
 // DELETE
-export const deletePreferenceByPreferencieId = async (
-  preferenceId: string,
-) => {
+export const deletePreferenceByPreferencieId = async (preferenceId: string) => {
   try {
     await connectToDatabase();
 
-    const deletedPreference = await FitnessPreferenceModel.findByIdAndDelete(preferenceId);
+    const deletedPreference = await FitnessPreferenceModel.findByIdAndDelete(
+      preferenceId
+    );
 
     return deletedPreference
       ? JSON.parse(JSON.stringify(deletedPreference))

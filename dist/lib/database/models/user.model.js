@@ -1,20 +1,7 @@
-import { Schema, model, models } from "mongoose";
-
-export interface User {
-  email: string;
-  firstName: string;
-  lastName: string;
-  dob: Date;
-  gender: string;
-  avatar: string;
-  refreshToken: string;
-  accessToken: string;
-  email_verified: boolean;
-  fullName: string;
-}
-
-const userSchema = new Schema<User>(
-  {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const mongoose_1 = require("mongoose");
+const userSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
     firstName: { type: String, required: true },
     lastName: { type: String },
@@ -25,10 +12,6 @@ const userSchema = new Schema<User>(
     refreshToken: { type: String, required: true },
     accessToken: { type: String, required: true },
     email_verified: { type: Boolean, default: false },
-  },
-  { timestamps: true }
-);
-
-const UserModel = models?.User || model<User>("User", userSchema);
-
-export default UserModel;
+}, { timestamps: true });
+const UserModel = (mongoose_1.models === null || mongoose_1.models === void 0 ? void 0 : mongoose_1.models.User) || (0, mongoose_1.model)("User", userSchema);
+exports.default = UserModel;

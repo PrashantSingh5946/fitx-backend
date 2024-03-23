@@ -1,5 +1,5 @@
 import RecipeModel from "../database/models/recipe.model";
-import { connectToDatabase } from "../database/mongoose";
+const connectToDatabase = require("../database/mongoose");
 import { handleError } from "../utils";
 
 // CREATE
