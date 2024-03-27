@@ -12,6 +12,9 @@ const userSchema = new mongoose_1.Schema({
     refreshToken: { type: String, required: true },
     accessToken: { type: String, required: true },
     email_verified: { type: Boolean, default: false },
+    password: { type: String, required: false },
+    isGoogleAuthorized: { type: Boolean, default: false },
+    loginMode: { type: String, required: true },
 }, { timestamps: true });
 const UserModel = (mongoose_1.models === null || mongoose_1.models === void 0 ? void 0 : mongoose_1.models.User) || (0, mongoose_1.model)("User", userSchema);
 exports.default = UserModel;

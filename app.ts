@@ -116,7 +116,7 @@ in response format like this
 
       res.send(recipe);
     } else {
-      console.log(run.status);
+      console.log("The response from open AI " + run.status);
     }
   } catch (error) {
     res.send({ message: "Internal server error" }).status(500);
@@ -125,7 +125,6 @@ in response format like this
 
 app.get("/recipe/all", async (req, res) => {
   try {
-    const { user_email } = req.headers;
     const recipes = await RecipeModel.find().limit(5);
     res.status(200).json(recipes);
   } catch (err) {
@@ -168,7 +167,7 @@ app.post("/image/generate", async (req, res) => {
   }
 });
 
-app.listen(process.env.PORT||6000, async () => {
+app.listen(process.env.PORT || 6000, async () => {
   try {
     await connection;
     console.log("Database connection established");

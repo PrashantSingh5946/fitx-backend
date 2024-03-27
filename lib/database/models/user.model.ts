@@ -11,6 +11,9 @@ export interface User {
   accessToken: string;
   email_verified: boolean;
   fullName: string;
+  password: string;
+  loginMode: "google" | "email";
+  isGoogleAuthorized: boolean;
 }
 
 const userSchema = new Schema<User>(
@@ -25,6 +28,9 @@ const userSchema = new Schema<User>(
     refreshToken: { type: String, required: true },
     accessToken: { type: String, required: true },
     email_verified: { type: Boolean, default: false },
+    password: { type: String, required: false },
+    isGoogleAuthorized: { type: Boolean, default: false },
+    loginMode: { type: String, required: true },
   },
   { timestamps: true }
 );

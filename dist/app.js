@@ -27,7 +27,7 @@ const origins = process.env.FRONTEND_URL
     ? process.env.FRONTEND_URL.split(",")
     : [];
 app.use(cors({
-    origin: origins, // Allow requests from this origin
+    origin: origins,
     optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
 }));
 app.use(express.json());
@@ -102,7 +102,7 @@ in response format like this
             res.send(recipe);
         }
         else {
-            console.log(run.status);
+            console.log("The response from open AI " + run.status);
         }
     }
     catch (error) {
@@ -111,7 +111,6 @@ in response format like this
 }));
 app.get("/recipe/all", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { user_email } = req.headers;
         const recipes = yield RecipeModel.find().limit(5);
         res.status(200).json(recipes);
     }
@@ -151,7 +150,7 @@ app.post("/image/generate", (req, res) => __awaiter(void 0, void 0, void 0, func
         res.status(500).json({ error: error });
     }
 }));
-app.listen(3001, () => __awaiter(void 0, void 0, void 0, function* () {
+app.listen(process.env.PORT || 6000, () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         yield connection;
         console.log("Database connection established");

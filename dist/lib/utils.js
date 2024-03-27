@@ -47,9 +47,9 @@ function verifyGoogleToken(token) {
 }
 exports.verifyGoogleToken = verifyGoogleToken;
 // function to check if a access token is valid
-function checkAccessTokenValidity(accessToken_1, refreshToken_1, user_email_1) {
-    return __awaiter(this, arguments, void 0, function* (accessToken, refreshToken, user_email, isRecursivelyCalled = false) {
-        var _a, _b, _c, _d;
+function checkAccessTokenValidity(accessToken, refreshToken, user_email, isRecursivelyCalled = false) {
+    var _a, _b, _c, _d;
+    return __awaiter(this, void 0, void 0, function* () {
         try {
             const response = yield fetch(`https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`);
             const data = yield response.json();
