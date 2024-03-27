@@ -175,7 +175,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             email: user.email,
             refreshToken: user.refreshToken,
         }, encryptionKey, {
-            expiresIn: "1h",
+            expiresIn: "240h",
         });
         res.status(200).json({ credential: token });
     }

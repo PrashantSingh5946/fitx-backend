@@ -9,6 +9,7 @@ const axios = require("axios");
 const AuthController = require("./controllers/AuthController");
 const HealthController = require("./controllers/HealthController");
 import { ObjectId } from "mongodb";
+import verifyToken from "./lib/middlewares/verifyToken";
 
 const app: Express = express();
 
@@ -36,7 +37,7 @@ app.get("/", async (req, res) => {
   res.send("Up and running");
 });
 
-app.post("/recipe/create", async (req, res) => {
+app.post("/recipe/create", verifyToken, async (req, res) => {
   try {
     const { user_email } = req.headers;
     console.log("User email ", user_email);
@@ -74,7 +75,7 @@ in response format like this
     ingredients: <[ingredients]>,
     description: <100 words>,
     instructions: <[steps]>, //5 steps at least
-    macros_per_100g: <["<carbs>", "<protein>", "<fats>", "<fiber>"]>,
+    macros_per_100g: <[<carbs in g>, <protein in g>, <fats in g>, <fiber in g>]>,
     calories: <int>,
     dietary_restrictions: <dietary restrictions>,
     allergy_warning: <allergy warning>,
@@ -98,18 +99,18 @@ in response format like this
 
       let data = messages.data.pop().content.pop().text.value;
 
-      const imageResponse = await openai.images.generate({
-        model: "dall-e-3",
-        quality: "standard",
-        prompt: JSON.parse(data).name,
-        n: 1,
-        size: "1024x1024",
-      });
+      // const imageResponse = await openai.images.generate({
+      //   model: "dall-e-3",
+      //   quality: "standard",
+      //   prompt: JSON.parse(data).name,
+      //   n: 1,
+      //   size: "128x128",
+      // });
 
       const recipe = new RecipeModel({
         ...JSON.parse(data),
         user_email,
-        thumbnail_url: imageResponse.data[0].url,
+        thumbnail_url: "",
       });
 
       await recipe.save();
@@ -117,13 +118,14 @@ in response format like this
       res.send(recipe);
     } else {
       console.log("The response from open AI " + run.status);
+      throw new Error("Error in generating recipe from AI");
     }
   } catch (error) {
     res.send({ message: "Internal server error" }).status(500);
   }
 });
 
-app.get("/recipe/all", async (req, res) => {
+app.get("/recipe/all", verifyToken, async (req, res) => {
   try {
     const recipes = await RecipeModel.find().limit(5);
     res.status(200).json(recipes);
@@ -132,7 +134,7 @@ app.get("/recipe/all", async (req, res) => {
   }
 });
 
-app.get("/recipe/:id", async (req, res) => {
+app.get("/recipe/:id", verifyToken, async (req, res) => {
   try {
     const recipeId = req.params.id;
     const { user_email } = req.headers;
@@ -148,7 +150,7 @@ app.get("/recipe/:id", async (req, res) => {
   }
 });
 
-app.post("/image/generate", async (req, res) => {
+app.post("/image/generate", verifyToken, async (req, res) => {
   try {
     const { prompt, amount = 1, resolution = "1024x1024" } = req.body;
 
@@ -164,6 +166,28 @@ app.post("/image/generate", async (req, res) => {
     res.status(200).json(response.data);
   } catch (error) {
     res.status(500).json({ error: error });
+  }
+});
+
+app.post("/recipe/search", verifyToken, async (req, res) => {
+  try {
+    console.log("Searching");
+    console.log(req.query);
+    const { name } = req.query;
+
+    console.log("🚀 ~ file: app.js:225 ~ app.get ~ name", name);
+
+    const recipes = await RecipeModel.find({
+      $or: [
+        { name: { $regex: name, $options: "i" } },
+        { description: { $regex: name, $options: "i" } },
+      ],
+    }).limit(3);
+
+    res.status(200).json(recipes);
+  } catch (error) {
+    console.log(error);
+    res.send({ message: "Internal server error" }).status(500);
   }
 });
 

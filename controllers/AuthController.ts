@@ -198,7 +198,7 @@ router.post("/login", async (req: Request, res: Response) => {
       },
       encryptionKey,
       {
-        expiresIn: "1h",
+        expiresIn: "240h",
       }
     );
     res.status(200).json({ credential: token });

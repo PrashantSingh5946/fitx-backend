@@ -8,6 +8,9 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const env = require("dotenv").config();
 const express = require("express");
@@ -19,6 +22,7 @@ const axios = require("axios");
 const AuthController = require("./controllers/AuthController");
 const HealthController = require("./controllers/HealthController");
 const mongodb_1 = require("mongodb");
+const verifyToken_1 = __importDefault(require("./lib/middlewares/verifyToken"));
 const app = express();
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -36,7 +40,7 @@ app.use("/health", HealthController);
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("Up and running");
 }));
-app.post("/recipe/create", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/recipe/create", verifyToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { user_email } = req.headers;
         console.log("User email ", user_email);
@@ -71,7 +75,7 @@ in response format like this
     ingredients: <[ingredients]>,
     description: <100 words>,
     instructions: <[steps]>, //5 steps at least
-    macros_per_100g: <["<carbs>", "<protein>", "<fats>", "<fiber>"]>,
+    macros_per_100g: <[<carbs in g>, <protein in g>, <fats in g>, <fiber in g>]>,
     calories: <int>,
     dietary_restrictions: <dietary restrictions>,
     allergy_warning: <allergy warning>,
@@ -90,26 +94,27 @@ in response format like this
                 console.log(`${message.role} > ${message.content[0].text.value}`);
             }
             let data = messages.data.pop().content.pop().text.value;
-            const imageResponse = yield openai.images.generate({
-                model: "dall-e-3",
-                quality: "standard",
-                prompt: JSON.parse(data).name,
-                n: 1,
-                size: "1024x1024",
-            });
-            const recipe = new RecipeModel(Object.assign(Object.assign({}, JSON.parse(data)), { user_email, thumbnail_url: imageResponse.data[0].url }));
+            // const imageResponse = await openai.images.generate({
+            //   model: "dall-e-3",
+            //   quality: "standard",
+            //   prompt: JSON.parse(data).name,
+            //   n: 1,
+            //   size: "128x128",
+            // });
+            const recipe = new RecipeModel(Object.assign(Object.assign({}, JSON.parse(data)), { user_email, thumbnail_url: "" }));
             yield recipe.save();
             res.send(recipe);
         }
         else {
             console.log("The response from open AI " + run.status);
+            throw new Error("Error in generating recipe from AI");
         }
     }
     catch (error) {
         res.send({ message: "Internal server error" }).status(500);
     }
 }));
-app.get("/recipe/all", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/recipe/all", verifyToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const recipes = yield RecipeModel.find().limit(5);
         res.status(200).json(recipes);
@@ -118,7 +123,7 @@ app.get("/recipe/all", (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.send({ message: "Internal server error" }).status(500);
     }
 }));
-app.get("/recipe/:id", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.get("/recipe/:id", verifyToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const recipeId = req.params.id;
         const { user_email } = req.headers;
@@ -133,7 +138,7 @@ app.get("/recipe/:id", (req, res) => __awaiter(void 0, void 0, void 0, function*
         res.send({ message: "Internal server error" }).status(500);
     }
 }));
-app.post("/image/generate", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+app.post("/image/generate", verifyToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { prompt, amount = 1, resolution = "1024x1024" } = req.body;
         const response = yield openai.images.generate({
@@ -148,6 +153,25 @@ app.post("/image/generate", (req, res) => __awaiter(void 0, void 0, void 0, func
     }
     catch (error) {
         res.status(500).json({ error: error });
+    }
+}));
+app.post("/recipe/search", verifyToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        console.log("Searching");
+        console.log(req.query);
+        const { name } = req.query;
+        console.log("🚀 ~ file: app.js:225 ~ app.get ~ name", name);
+        const recipes = yield RecipeModel.find({
+            $or: [
+                { name: { $regex: name, $options: "i" } },
+                { description: { $regex: name, $options: "i" } },
+            ],
+        }).limit(3);
+        res.status(200).json(recipes);
+    }
+    catch (error) {
+        console.log(error);
+        res.send({ message: "Internal server error" }).status(500);
     }
 }));
 app.listen(process.env.PORT || 6000, () => __awaiter(void 0, void 0, void 0, function* () {
