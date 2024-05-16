@@ -66,7 +66,21 @@ router.post("/google", (req, res) => __awaiter(void 0, void 0, void 0, function*
                 isGoogleAuthorized: true,
             });
         }
-        res.send(tokens.data);
+        let encryptionKey = process.env.ENCRYPTION_KEY;
+        if (!encryptionKey) {
+            throw new Error("Encryption key not found");
+        }
+        const token = jsonwebtoken_1.default.sign({
+            userId: user._id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            accessToken: user.accessToken,
+            emailVerified: user.email_verified,
+            email: user.email,
+            refreshToken: user.refreshToken,
+        }, encryptionKey, {
+            expiresIn: "240h",
+        });
     }
     catch (err) {
         res.send(JSON.stringify(err)).status(500);

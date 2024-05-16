@@ -76,7 +76,26 @@ router.post("/google", async (req: Request, res: Response) => {
       });
     }
 
-    res.send(tokens.data);
+     let encryptionKey = process.env.ENCRYPTION_KEY;
+     if (!encryptionKey) {
+       throw new Error("Encryption key not found");
+     }
+
+    const token = jwt.sign(
+      {
+        userId: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        accessToken: user.accessToken,
+        emailVerified: user.email_verified,
+        email: user.email,
+        refreshToken: user.refreshToken,
+      },
+      encryptionKey,
+      {
+        expiresIn: "240h",
+      }
+    );
   } catch (err) {
     res.send(JSON.stringify(err)).status(500);
   }
