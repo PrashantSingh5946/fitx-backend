@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const mongodb_1 = require("mongodb");
 const mongoose_1 = require("mongoose");
 const userSchema = new mongoose_1.Schema({
     email: { type: String, required: true, unique: true },
@@ -15,6 +16,7 @@ const userSchema = new mongoose_1.Schema({
     password: { type: String, required: false },
     isGoogleAuthorized: { type: Boolean, default: false },
     loginMode: { type: String, required: true },
+    goals: { type: [mongodb_1.ObjectId], required: false },
 }, { timestamps: true });
 const UserModel = (mongoose_1.models === null || mongoose_1.models === void 0 ? void 0 : mongoose_1.models.User) || (0, mongoose_1.model)("User", userSchema);
 exports.default = UserModel;

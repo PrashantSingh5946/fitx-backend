@@ -13,6 +13,7 @@ import verifyToken from "./lib/middlewares/verifyToken";
 const AuthController = require("./controllers/AuthController");
 const RecipeController = require("./controllers/RecipeController");
 const HealthController = require("./controllers/HealthController");
+const ActivityController = require("./controllers/ActivityController");
 
 const app: Express = express();
 
@@ -35,6 +36,7 @@ app.use(express.json());
 app.use("/auth", AuthController);
 app.use("/health", HealthController);
 app.use("/recipe", RecipeController);
+app.use("/activity", ActivityController);
 
 //Route to check the API health
 app.get("/", async (req, res) => {

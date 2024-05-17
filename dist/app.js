@@ -19,6 +19,7 @@ const axios = require("axios");
 const AuthController = require("./controllers/AuthController");
 const RecipeController = require("./controllers/RecipeController");
 const HealthController = require("./controllers/HealthController");
+const ActivityController = require("./controllers/ActivityController");
 const app = express();
 const origins = process.env.FRONTEND_URL
     ? process.env.FRONTEND_URL.split(",")
@@ -34,6 +35,7 @@ app.use(express.json());
 app.use("/auth", AuthController);
 app.use("/health", HealthController);
 app.use("/recipe", RecipeController);
+app.use("/activity", ActivityController);
 //Route to check the API health
 app.get("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     res.send("Up and running");

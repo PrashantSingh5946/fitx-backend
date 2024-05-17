@@ -1,3 +1,4 @@
+import { ObjectId } from "mongodb";
 import { Schema, model, models } from "mongoose";
 
 export interface User {
@@ -14,6 +15,7 @@ export interface User {
   password: string;
   loginMode: "google" | "email";
   isGoogleAuthorized: boolean;
+  goals: [ObjectId];
 }
 
 const userSchema = new Schema<User>(
@@ -31,6 +33,7 @@ const userSchema = new Schema<User>(
     password: { type: String, required: false },
     isGoogleAuthorized: { type: Boolean, default: false },
     loginMode: { type: String, required: true },
+    goals: { type: [ObjectId], required: false },
   },
   { timestamps: true }
 );

@@ -5,10 +5,13 @@ export interface Activity {
   activityMeasurement: number;
   activityMeasurementUnit: string;
   activityType: "Food" | "Water" | "Workout" | "Sleep";
+  name: string;
+  comments: string;
 }
 
 const activitySchema = new Schema<Activity>(
   {
+    name: { type: String, required: true },
     activityType: {
       type: String,
       enum: ["Food", "Water", "Workout", "Sleep"],
@@ -17,6 +20,7 @@ const activitySchema = new Schema<Activity>(
     activityMeasurement: { type: Number, required: true },
     activityMeasurementUnit: { type: String, required: true },
     userId: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+    comments: { type: String, required: false },
   },
   { timestamps: true }
 );
