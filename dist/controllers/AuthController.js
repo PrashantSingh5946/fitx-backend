@@ -180,6 +180,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (!encryptionKey) {
             throw new Error("Encryption key not found");
         }
+        console.log(user.goals);
         const token = jsonwebtoken_1.default.sign({
             userId: user._id,
             firstName: user.firstName,
@@ -188,6 +189,7 @@ router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* 
             emailVerified: user.email_verified,
             email: user.email,
             refreshToken: user.refreshToken,
+            goals: user.goals,
         }, encryptionKey, {
             expiresIn: "240h",
         });

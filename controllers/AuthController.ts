@@ -76,10 +76,10 @@ router.post("/google", async (req: Request, res: Response) => {
       });
     }
 
-     let encryptionKey = process.env.ENCRYPTION_KEY;
-     if (!encryptionKey) {
-       throw new Error("Encryption key not found");
-     }
+    let encryptionKey = process.env.ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      throw new Error("Encryption key not found");
+    }
 
     const token = jwt.sign(
       {
@@ -205,6 +205,8 @@ router.post("/login", async (req: Request, res: Response) => {
     if (!encryptionKey) {
       throw new Error("Encryption key not found");
     }
+
+    console.log(user.goals);
     const token = jwt.sign(
       {
         userId: user._id,
@@ -214,6 +216,7 @@ router.post("/login", async (req: Request, res: Response) => {
         emailVerified: user.email_verified,
         email: user.email,
         refreshToken: user.refreshToken,
+        goals: user.goals,
       },
       encryptionKey,
       {

@@ -31,7 +31,7 @@ router.get("/", (req: Request, res: Response) => {
 });
 
 // define the route for getting goals
-router.get("/goals", verifyToken, async (req: Request, res: Response) => {
+router.get("/goals", async (req: Request, res: Response) => {
   try {
     // Retrieve goals from the database
     const goals = await GoalModel.find();
@@ -47,9 +47,12 @@ router.post("/my_goals", verifyToken, async (req: Request, res: Response) => {
   try {
     // Extract goal data from the request body
     const { goals } = req.body;
+    console.log(req.body);
     let user = await UserModel.findOne({ email: req.body.email });
-    user.goals = goals;
-    user.save();
+    user.goals = [...goals];
+    await user.save();
+
+    console.log(await UserModel.findOne({ email: req.body.email }));
     res.json({ status: "Successful" });
   } catch (error) {
     console.error("Error creating goal:", error);
@@ -80,8 +83,7 @@ router.get(
 
       let user = await UserModel.findOne({ email: req.body.email });
       let goalIds = user.goals;
-      let goals = await GoalModel.find({ _id: { $in: goalIds } });
-      let activities = goals.map((goal) => goal.tasks).flat(Infinity);
+      let activities = await ActivityModel.find({ userId: user._id }).limit(10);
 
       res.json(activities);
     } catch (error) {
@@ -95,16 +97,20 @@ router.post("/log", verifyToken, async (req: Request, res: Response) => {
   try {
     const { activity } = req.body;
 
+    console.log(req.body);
+
     let user = await UserModel.findOne({ email: req.body.email });
 
     let doc = await new ActivityModel({
       name: activity.activity_type,
       activityType: "Workout",
       activityMeasurementUnit: "Minutes",
-      activityMeasureMent: activity.amount,
+      activityMeasurement: activity.amount,
       userId: user._id,
       comments: activity.comments,
     });
+
+    await doc.save();
 
     res.json(doc);
   } catch (error) {
